@@ -9,4 +9,4 @@ if %errorlevel% NEQ 0 (
 )
 
 :: Running the Python file located in the same directory as the script
-python "%~dp0BlockedSitesManager_Eng.py"
+python "%~dp0App.py"
