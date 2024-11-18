@@ -1,3 +1,5 @@
+### Version: 1.1c - 18.11.2024
+
 # Website-Blocker-Manager
 
 **Website-Blocker-Manager** is a simple graphical program built with **CustomTkinter** in Python 3.11. The purpose of this program is to help users manage their **hosts** file in Windows for blocking unwanted websites.
