@@ -1,6 +1,6 @@
 import ctypes
 import os
-import re
+import subprocess
 import customtkinter as ctk
 from datetime import datetime
 import tkinter
@@ -18,8 +18,6 @@ def check_admin_rights():
     except AttributeError:
         return ctypes.windll.shell32.IsUserAnAdmin() != 0  # Windows
     
-
-
 # Path to the test file (instead of the real hosts file)
 HOST_FILE_PATH = r"C:\Windows\System32\drivers\etc\hosts"
 
@@ -31,6 +29,7 @@ class HostsEditorApp(ctk.CTk):
         self.title("Website Blocker Manager")
         self.geometry("800x600")
         self.resizable(False, False)
+        ctk.set_appearance_mode("dark") #system, dark, light
 
         # File path
         self.file_path = HOST_FILE_PATH  # You can set any path
@@ -64,6 +63,7 @@ class HostsEditorApp(ctk.CTk):
         self.remove_all_checkbox = ctk.CTkCheckBox(
             self.action_frame,
             text="Remove all related entries",
+            state="normal" if self.admin_mode else "disabled",
             variable=self.remove_all_var
         )
         self.remove_all_checkbox.grid(row=0, column=0, padx=5, pady=5, sticky="w")
@@ -71,19 +71,23 @@ class HostsEditorApp(ctk.CTk):
         # Buttons
         self.add_button = ctk.CTkButton(
             self.action_frame,
-            text="Add",
+            text="Block",
+            border_color="#8f0000",
+            border_width=2,
+            fg_color = "#d10000",
+            hover_color = "#9e0000",
             command=self.add_site,
             state="normal" if self.admin_mode else "disabled",
-            width=100
+            width=92
         )
         self.add_button.grid(row=0, column=1, padx=10, pady=5)
 
         self.remove_button = ctk.CTkButton(
             self.action_frame,
-            text="Remove",
+            text="Unblock",
             command=self.remove_site,
             state="normal" if self.admin_mode else "disabled",
-            width=100
+            width=92
         )
         self.remove_button.grid(row=0, column=2, padx=10, pady=5)
         
@@ -93,7 +97,7 @@ class HostsEditorApp(ctk.CTk):
             text="Save File",
             command=self.save_to_file,
             state="normal" if self.admin_mode else "disabled",
-            width=100
+            width=92
         )
         self.save_button.grid(row=0, column=3, padx=10, pady=5)
 
@@ -102,9 +106,18 @@ class HostsEditorApp(ctk.CTk):
             text="Create Backup",
             command=self.create_backup,
             state="normal" if self.admin_mode else "disabled",
-            width=100
+            width=92
         )
         self.backup_button.grid(row=0, column=4, padx=10, pady=5)
+
+        self.DNSFlushButton = ctk.CTkButton(
+            self.action_frame,
+            text="DNS flush",
+            command=self.DNSFlush,
+            state="normal" if self.admin_mode else "disabled",
+            width=92
+        )
+        self.DNSFlushButton.grid(row=0, column=5, padx=10, pady=5)
 
         # Preview window
         self.preview_frame = ctk.CTkFrame(self.main_frame)
@@ -123,7 +136,7 @@ class HostsEditorApp(ctk.CTk):
         # Program information
         self.version_label = ctk.CTkLabel(
             master=self.main_frame,
-            text="By @Nieznany237 | Version 1.1 [16.11.2024]",
+            text="By @Nieznany237 | Version 1.1c 18.11.2024 | First release: 16.11.2024",
             text_color="#7E7E7E"
         )
         self.version_label.pack(side="right", pady=0)
@@ -195,6 +208,23 @@ class HostsEditorApp(ctk.CTk):
             tkinter.messagebox.showinfo("Success", "Changes saved successfully!")
         except Exception as e:
             tkinter.messagebox.showerror("Error", f"Failed to save the file: {e}")
+
+    def DNSFlush(self):
+        try:
+            # Wykonanie komendy w terminalu
+            result = subprocess.run(
+                ["ipconfig", "/flushdns"],
+                capture_output=True,
+                text=True,
+                shell=True
+            )
+            # Wyświetlenie wyniku w oknie
+            if result.returncode == 0:
+                tkinter.messagebox.showinfo("Success", "DNS Cache flushed successfully!")
+            else:
+                tkinter.messagebox.showerror("Error", f"Failed to flush DNS: {result.stderr}")
+        except Exception as e:
+            tkinter.messagebox.showerror("Error", f"Exception: {str(e)}")
 
     def create_backup(self):
         try:
